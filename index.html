@@ -1,0 +1,400 @@
+<!doctype html>  
+<html lang="en">
+	
+	<head>
+		<meta charset="utf-8">
+		
+		<title>OOJS Patterns</title>
+
+		<meta name="description" content="How I became less intimidated by JavaScript">
+		<meta name="author" content="Dan Bowles">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		
+		<link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700' rel='stylesheet' type='text/css'>
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/idea.css">
+		
+		<link rel="stylesheet" href="css/main.css">
+		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+
+
+		<script>
+			// If the query includes 'print-pdf' we'll use the PDF print sheet
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+	
+	<body>
+		
+		<div class="reveal">
+
+			<!-- Used to fade in a background when a specific slide state is reached -->
+			<div class="state-background"></div>
+			
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>
+						OOJS
+					</h1>
+					<h2>Patterns n' stuff</h2>
+					<small>Dan Bowles - <a href="http://twitter.com/danbowles">@DanBowles</a> - <a href="http://danbowles.com">www.danbowles.com</a></small>
+				</section>
+
+				<section>
+					<h2>Overview</h2>
+					<ul>
+						<li>Constructors</li>
+						<li>Prototypes</li>
+						<li>Constructor/Prototype</li>
+						<li>Factory Pattern</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Constructors</h2>
+					<pre><code>function Widget(name, data) {
+  this.name = name;
+  this.data = data;
+  this.getName = function() { console.log(this.name) };
+}
+
+var w1 = new Widget("Button", {id: "1"});
+var w2 = new Widget("Tabs", {id: "2", tabs: []});
+
+console.log(w1.getName === w2.getName);</code></pre>
+					<ul>
+						<li>Each Widget gets a copy of <code>getName</code></li>
+						<li>Not a great use of memory</li>
+					</ul>
+				</section>
+
+				<section>
+					<section>
+						<h2>Prototypes!</h2>
+						<pre><code>function Widget() {}
+
+Widget.prototype.name = "WidgetName";
+Widget.prototype.data = {};
+Widget.prototype.getName = function() {
+  console.log(this.name);
+};
+
+var w1 = new Widget();
+var w2 = new Widget();
+
+w1.name = "Dialog"; // Set on instance
+w1.getName();
+delete w1.name; // Back to prototype
+w1.getName();</code></pre>
+					<ul>
+						<li>Every instance gets the same defaults</li>
+						<li>For better or worse - everything is shared (including reference types)</li>
+					</ul>
+					</section>
+					<section>
+						<h2>Sharing in Prototypes</h2>
+						<pre><code>//..continued from last slide
+
+Widget.prototype.numbers = [1,2];
+
+var w3 = new Widget();
+var w4 = new Widget();
+
+w3.numbers.push(100);
+console.log(w4.numbers); // [1, 2, 100]</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<h2>Constructor + Prototypes</h2>
+					<pre><code>function Widget(name, data) {
+  this.name = name;
+  this.data = data;
+}
+
+Widget.prototype = {
+  constructor: Widget, // Not set automatically with this syntax
+  getName: function() {
+    console.log(this.name);
+  },
+};
+
+var w1 = new Widget("Button", {id: "1"});
+var w2 = new Widget("Tabs", {id: "2", tabs: []});
+
+w1.data['awesome'] = true;
+console.log(w2.data['awesome']); // undefined</code></pre>
+				</section>
+
+				<section>
+					<section>
+						<h2>Parasitic Constructor</h2>
+						<pre><code>function Widget(name, data) {
+  var o = {
+    name: name,
+    data: data,
+    getName: function() {
+      console.log(this.name)
+    }
+  };
+
+  return o; // Overrides default behavior of constructor
+}</code></pre>
+				</section>
+					<section>
+						<h2>Continued</h2>
+						<pre><code>// "Professional JavaScript For Web Developers 3rd Ed."
+// by Nicholas Zakas
+
+function SpecialArray() {
+  var values = new Array();
+
+  values.push.apply(values, arguments);
+  
+  values.toPipedString = function() {
+    return this.join("|");
+  };
+  
+  return values;
+}
+
+var colors = new SpecialArray("red", "blue", "green"); 
+alert(colors.toPipedString()); //”red|blue|green”</code></pre>
+					</section>
+				</section>
+
+				<section>
+						<h2>Durable Constructors</h2>
+						<pre><code>function Widget(name, data) {
+  var o = new Object();
+
+  // Private stuff, if needed
+
+  o.getName = function() {
+    console.log(name);
+  };
+
+  return o;
+}
+
+var w1 = Widget("Button", {id: "1"});
+
+console.log(w1.data); // undefined
+w1.getName();</code></pre>
+						<ul>
+							<li>Cannot access properties without a function, hence durability</li>
+						</ul>
+				</section>
+
+				<section>
+					<h2>Inheritance</h2>
+					<ul>
+						<li>Prototype Chaining</li>
+						<li>Constructor Stealing</li>
+						<li>Combination Inheritance</li>
+						<li>Prototypal Inheritance</li>
+						<li>Parasitic Inheritance</li>
+						<li>Parasitic Combination Inheritance</li>
+				</section>
+				<section>
+					<h2>Prototype Chaining</h2>
+					<pre><code>function Parent() {
+  this.parentVal = "parent";
+  // ...
+}
+
+Parent.prototype.getParentVal = function() {
+  return this.parentVal;
+}
+
+function Child() {
+  this.childVal = "child";
+  // ...
+}
+
+Child.prototype = new Parent();
+
+Child.prototype.getChildVal = function() {
+  return this.childVal;
+}
+
+var c = new Child();
+console.log(c.getParentVal());</code></pre>
+				</section>
+				<section>
+					<h2>Constructor Stealing</h2>
+					<pre><code>function Parent() {
+  this.parentArray = [1,2];
+  // ...
+}
+
+function Child() {
+  Parent.call(this);
+  // ...
+}
+
+
+var c1 = new Child();
+var c2 = new Child();
+
+c1.parentArray.push(100);
+
+console.log(c2.parentArray);</code></pre>
+				</section>
+				<section>
+					<h2>Combination</h2>
+					<pre><code>function Parent(pVal) {
+  this.parentVal = pVal;
+  this.parentArray = [1,2];
+}
+
+Parent.prototype.getParentVal = function() {
+  return this.parentVal;
+}
+
+function Child(pVal, cVal) {
+  Parent.call(this, pVal); // Inherit Properties
+  this.childVal = cVal;
+}
+
+Child.prototype = new Parent(); // Inherit Methods
+
+Child.prototype.getChildVal = function() {
+  return this.childVal;
+}
+
+var c1 = new Child("parent", "child");
+c1.parentArray.push(100);
+console.log(c1.getParentVal()); // parent
+
+var c2 = new Child("PARENT", "CHILD");
+console.log(c2.parentArray); // [1,2]
+console.log(c2.getParentVal()); // PARENT</code></pre>
+				</section>
+
+				<section>
+					<h2>Prototypal</h2>
+					<pre><code>function object(o) {
+  function F() {}
+  F.prototype = o;
+  return new F();
+}
+
+var widget = {
+  name: "Widget",
+  keys: [1,2,3]
+}
+
+var menuBar = object(widget);
+menuBar.keys.push(100);
+
+var slideShow = object(widget);
+slideShow.keys.push(1000);</code></pre>
+				</section>
+
+				<section>
+					<h2>Parasitic</h2>
+					<pre><code>function createAnother(o) {
+  clone = Object.create(o);
+  clone.greet = function() {
+    console.log("heyo!");
+  }
+  return clone;
+}
+
+var widget = {
+  name: "Widget",
+  keys: [1,2,3]
+};
+
+var searchBar = createAnother(widget);</code></pre>
+				</section>
+
+				<section>
+					<h2>Parasitic Combination</h2>
+					<pre><code>function inheritPrototype(subType, superType) { 
+  var prototype = Object.create(superType.prototype); 
+  prototype.constructor = subType; 
+  subType.prototype = prototype;
+}
+
+function Parent(pVal) {
+  this.parentVal = pVal;
+  this.parentArray = [1,2];
+}
+
+Parent.prototype.getParentVal = function() {
+  return this.parentVal;
+}
+
+function Child(pVal, cVal) {
+  Parent.call(this, pVal); // Inherit Properties
+  this.childVal = cVal;
+}
+
+inheritPrototype(Child, Parent);
+
+Child.prototype.getChildVal = function() {
+  return this.childVal;
+}</code></pre>
+				</section>
+
+				<section>
+					<h1>Questions?</h1>
+				</section>
+				<section>
+					<h1>Thank You!</h1>
+				</section>
+
+			</div>
+
+			<!-- The navigational controls UI -->
+			<aside class="controls">
+				<a class="left" href="#">&#x25C4;</a>
+				<a class="right" href="#">&#x25BA;</a>
+				<a class="up" href="#">&#x25B2;</a>
+				<a class="down" href="#">&#x25BC;</a>
+			</aside>
+
+			<!-- Presentation progress bar -->
+			<div class="progress"><span></span></div>
+			
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+			
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				
+				theme: Reveal.getQueryHash().theme || 'simple', // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/linear(2d)
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/highlight.js', async: true, callback: function() { window.hljs.initHighlightingOnLoad(); } },
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'lib/js/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'lib/js/data-markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: '/socket.io/socket.io.js', async: true, condition: function() { return window.location.host === 'localhost:1947'; } },
+					{ src: 'plugin/speakernotes/client.js', async: true, condition: function() { return window.location.host === 'localhost:1947'; } },
+				]
+			});
+			
+		</script>
+
+	</body>
+</html>
